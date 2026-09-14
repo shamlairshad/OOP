@@ -2,16 +2,32 @@
 #include "member2/AttendanceExceptions.h"
 #include <ctime>
 
-AttendanceSession& AttendanceRegister::openSession(const std::string& courseCode, const std::string& lecturerId,
-                                                   const TimeSlot& slot)
+std::string AttendanceRegister::openSession(const std::string& courseCode, const std::string& lecturerId,
+                                             const TimeSlot& slot)
 {
     if (courseCode.empty() || lecturerId.empty()) {
         throw AttendanceException("A course code and lecturer ID are required to open attendance.");
     }
-    sessions_.emplace_back(makeSessionId(), courseCode, lecturerId, slot);
-    AttendanceSession& session = sessions_.back();
-    session.open();
-    return session;
+    std::string newId = makeSessionId();
+    sessions_.emplace_back(newId, courseCode, lecturerId, slot);
+    sessions_.back().open();
+    return newId;
+}
+
+AttendanceSession* AttendanceRegister::findSession(const std::string& sessionId)
+{
+    for (auto& session : sessions_) {
+        if (session.sessionId() == sessionId) return &session;
+    }
+    return nullptr;
+}
+
+const AttendanceSession* AttendanceRegister::findSession(const std::string& sessionId) const
+{
+    for (const auto& session : sessions_) {
+        if (session.sessionId() == sessionId) return &session;
+    }
+    return nullptr;
 }
 
 void AttendanceRegister::closeSession(AttendanceSession& session)
@@ -41,7 +57,7 @@ void AttendanceRegister::applyCorrection(const AttendanceCorrection& correction)
         throw InvalidAttendanceCorrectionException("A correction must refer to an existing attendance record.");
     if (correction.actingLecturerId().empty() || correction.reason().empty())
         throw InvalidAttendanceCorrectionException("A correction needs a lecturer ID and reason.");
-    corrections_.push_back(correction); // Append-only: the original record remains unchanged.
+    corrections_.push_back(correction);
 }
 
 double AttendanceRegister::percentageFor(const std::string& studentId) const
@@ -66,7 +82,7 @@ AttendanceStatus AttendanceRegister::effectiveStatusFor(const AttendanceRecord& 
     AttendanceStatus result = record.status();
     for (const auto& correction : corrections_)
         if (correction.studentId() == record.studentId() && correction.sessionId() == record.sessionId())
-            result = correction.newStatus(); // The latest appended correction wins.
+            result = correction.newStatus();
     return result;
 }
 std::string AttendanceRegister::makeSessionId() { return "AS-" + std::to_string(nextSessionNumber_++); }
