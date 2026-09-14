@@ -15,12 +15,15 @@ int main()
     assert(first.clashesWith(second));
 
     AttendanceRegister register_;
-    AttendanceSession& session = register_.openSession("CO2203", "L001", monday);
-    assert(session.sessionCode().validate(session.sessionCode().value()));
-    register_.mark(session, "S001", AttendanceStatus::ABSENT, "SessionCodeCapture");
-    register_.applyCorrection(AttendanceCorrection("S001", session.sessionId(), "L001", "Lecturer verified attendance.", AttendanceStatus::PRESENT));
+    std::string sessionId = register_.openSession("CO2203", "L001", monday);
+    AttendanceSession* session = register_.findSession(sessionId);
+    assert(session != nullptr);
+
+    assert(session->sessionCode().validate(session->sessionCode().value()));
+    register_.mark(*session, "S001", AttendanceStatus::ABSENT, "SessionCodeCapture");
+    register_.applyCorrection(AttendanceCorrection("S001", session->sessionId(), "L001", "Lecturer verified attendance.", AttendanceStatus::PRESENT));
     assert(register_.percentageFor("S001") == 100.0);
-    register_.closeSession(session);
+    register_.closeSession(*session);
 
     std::ostringstream report;
     printAttendanceReport(register_, {"S001"}, report);
