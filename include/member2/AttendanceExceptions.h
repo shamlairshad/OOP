@@ -1,16 +1,12 @@
 #ifndef MEMBER2_ATTENDANCE_EXCEPTIONS_H
 #define MEMBER2_ATTENDANCE_EXCEPTIONS_H
 
-#include <exception>
+#include "Exceptions.h" 
 #include <string>
 
-class AttendanceException : public std::exception {
+class AttendanceException : public UniversityException {
 public:
-    explicit AttendanceException(const std::string& message) : message_(message) {}
-    const char* what() const noexcept override { return message_.c_str(); }
-
-private:
-    std::string message_;
+    explicit AttendanceException(const std::string& message) : UniversityException(message) {}
 };
 class SessionClosedException : public AttendanceException {
 public:
