@@ -10,8 +10,12 @@
 class AttendanceRegister {
 public:
     // Interface Agreement: course code, lecturer ID, and slot are supplied by AttendanceService.
-    AttendanceSession& openSession(const std::string& courseCode, const std::string& lecturerId,
-                                   const TimeSlot& slot);
+    std::string openSession(const std::string& courseCode, const std::string& lecturerId,
+                             const TimeSlot& slot);
+
+    AttendanceSession* findSession(const std::string& sessionId);
+    const AttendanceSession* findSession(const std::string& sessionId) const;
+
     void closeSession(AttendanceSession& session);
     bool alreadyMarked(const std::string& sessionId, const std::string& studentId) const;
     void mark(const AttendanceSession& session, const std::string& studentId,
@@ -30,7 +34,6 @@ private:
     unsigned nextSessionNumber_ = 1;
     std::vector<AttendanceRecord> records_;
     std::vector<AttendanceCorrection> corrections_;
-    // Do not keep a returned reference after opening another session: vector may reallocate.
     std::vector<AttendanceSession> sessions_;
 };
 
